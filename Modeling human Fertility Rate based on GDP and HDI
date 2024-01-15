@@ -1,0 +1,252 @@
+library(dplyr)
+options(scipen = 999)
+
+# Ladowanie przykladowych danych dla 11 krajow z calego swiata. Posluzsza one to stworzenia 2 modeli lm. 
+# FR to fertility rate, GDP to Produkt krajowy brutto per capita a HDI {human development index} to indeks rozwoju cywilizacyjnego. 
+# Na podstawie tych ostatnich tworze modele ktore maja przewidywac FR dla danego kraju.
+
+data <-  data.frame(GDP = c(1079, 17999, 43600, 35657, 7507, 2256, 70248, 7055, 3698, 51200, 4923),
+  FR = c(6.21, 1.33, 1.84, 1.24, 1.65, 2.05, 1.64, 2.40, 3.131, 1.58, 5.31),
+  HDI = c(0.47, 0.876, 0.903, 0.895, 0.754, 0.633, 0.921, 0.713, 0.731, 0.942, 0.538),
+  Country = c("Rep of Congo", "Poland", "France", "Italy", "Brasil", "India", "USA", "RPA", "Egypt", "Germany", "Nigeria")
+)
+# sortuje dane, dla lepszej czytelnsoci
+data <- data %>% arrange(GDP)
+
+# Tworze dwa modele, jeden dla GDP, drugi dla HDI
+
+### Linear model
+# Dla wskaznika HDI
+fit1 <- lm(FR ~ HDI, data = data) # zwykly lm
+plot(data$HDI, data$FR, pch=19, xlab='HDI', ylab='Fertility Rate', ylim = c(0, 8), xlim = c(0.4, 1) )
+text(data$HDI, data$FR +1 , labels=data$Country)
+lines(data$HDI, predict(fit1, data.frame(HDI=data$HDI)), col='green')
+
+### Curved linear model
+# Dla wskaznika GDPC
+fit2 <- lm(FR ~ poly(GDP,5,raw=TRUE), data = data) # najlepsza dla poly = 5  # poly lm
+plot(data$GDP, data$FR, pch=19, xlab='GDP per Capita', ylab='Fertility Rate', ylim = c(0, 8) )
+text(data$GDP, data$FR +0.7 , labels=data$Country)
+lines(data$GDP, predict(fit2, data.frame(GDP=data$GDP)), col='red')
+
+predict(fit2, data.frame(GDP=70000)) # jaki jest FR dla zadanego GDP
+
+
+# Tworze funkcje "Model()" do szybkiego liczenia N  
+Model <- function(t = 100, GDP = 3700, HDI = 0.5, Pop_start = 40000000, Life_Time = 78, Tempo_Wzrostu = 11100, Wskaznik_GDP = TRUE) {
+  #Model(t = 100, GDP = 2370, HDI = 0.536, Pop_start = 1393676444, Life_Time = 63, Tempo_Wzrostu = 3, Wskaznik_GDP = TRUE)
+
+N <- numeric(t)
+N[1] <- Pop_start # Startowa populacja panstwa/kontynentu
+# Wybor, czy HDI, czy GDP
+
+if(Wskaznik_GDP == TRUE){
+  Wskaznik_Rozwoju <- data.frame(GDP = GDP)
+  fit <- fit2
+} else{Wskaznik_Rozwoju <- data.frame(HDI = HDI)
+        fit <- fit1
+}
+
+Poczatkowy_Rozwoj <- Wskaznik_Rozwoju
+# Jaki ma byc wzrost HDI/GDP po 100 latach?  Ilu krotny?
+Jaki_Wzrost <- Tempo_Wzrostu/Poczatkowy_Rozwoj
+Wzrost_Czynnika <- (Jaki_Wzrost-1)/100
+
+####### Petla ######################
+i = 10
+predict(fit, Wskaznik_Rozwoju)
+for (i in 1:(t-1)){
+  Ratio <- (predict(fit, Wskaznik_Rozwoju) - 2.1)            # 2.1 prog FR ponizej ktorej nie dochodzi do wymiany pokolen i pop spada
+
+  Wskaznik_Rozwoju <- Wskaznik_Rozwoju + Poczatkowy_Rozwoj * Wzrost_Czynnika
+  Zmiana <- (Ratio/2) * N[i]
+  Zmiana <- Zmiana / Life_Time
+  N[i+1] <-N[i] + Zmiana
+}
+ return(N) # Funkcja Zwraca populacje
+}
+
+plot(Model())
+
+# Index dla 2017 # potezne roznice meidzy EU W a E!!!
+# https://www.statista.com/statistics/270861/life-expectancy-by-continent/
+
+World <- Model(t = 100, GDP = 12647, HDI = 0.693, Pop_start = 8100000000, Life_Time = 73.16, Tempo_Wzrostu = 0.90, Wskaznik_GDP = FALSE)
+predict(fit1, data.frame(GDP = 12647))
+Poland <- Model(t = 100, GDP = 17999, HDI = 0.876, Pop_start = 40000000, Life_Time = 78, Tempo_Wzrostu = 0.920, Wskaznik_GDP = FALSE)
+
+plot(World)
+plot(Poland)
+
+
+
+# 1)
+#### Populacja swiata, gdyby HDI mialo wzrosnac do poziomu ~Francji/Polski na calym swiecie w 100 lat
+Afryka    <- Model(t = 100, GDP = 2370, HDI = 0.536, Pop_start = 1393676444, Life_Time = 63, Tempo_Wzrostu = 0.90, Wskaznik_GDP = FALSE)
+Europa    <- Model(t = 100, GDP = 34706, HDI = 0.845, Pop_start = 745173774, Life_Time = 78, Tempo_Wzrostu = 0.90, Wskaznik_GDP = FALSE)
+Azja      <- Model(t = 100, GDP = 3700, HDI = 0.714, Pop_start = 4694576167, Life_Time = 73, Tempo_Wzrostu = 0.90, Wskaznik_GDP = FALSE)
+Ameryka.N <- Model(t = 100, GDP = 60859, HDI = 0.733, Pop_start = 595783465, Life_Time = 77, Tempo_Wzrostu = 0.90, Wskaznik_GDP = FALSE)
+Ameryka.S <- Model(t = 100, GDP = 11351, HDI = 0.738, Pop_start = 434254119, Life_Time = 73, Tempo_Wzrostu = 0.90, Wskaznik_GDP = FALSE)
+Oceania   <- Model(t = 100, GDP = 63809, HDI = 0.693, Pop_start = 44491724, Life_Time = 78, Tempo_Wzrostu = 0.90, Wskaznik_GDP = FALSE)
+
+plot(Afryka)
+plot(Europa)
+plot(Azja)
+plot(Ameryka.N)
+plot(Ameryka.S)
+plot(Oceania)
+
+Earth_Pop <- data.frame(Afryka, Europa, Azja, Ameryka.N, Ameryka.S, Oceania)
+Earth_Pop$SUM <- rowSums(Earth_Pop)
+plot(Earth_Pop$SUM)
+Earth_Pop[100,] # Populacja za 100 lat
+Earth_Pop[100,]/1000000 # Populacja za 100 lat w mln ludzi
+
+# 2)
+#### Populacja swiata, gdyby GDP mialo wzrosnac do poziomu Polski na innych kontynentach niz Europa w 100 lat
+Afryka    <- Model(t = 100, GDP = 2370, HDI = 0.536, Pop_start = 1393676444, Life_Time = 63, Tempo_Wzrostu = 18000, Wskaznik_GDP = TRUE)
+Europa    <- Model(t = 100, GDP = 34706, HDI = 0.845, Pop_start = 745173774, Life_Time = 78, Tempo_Wzrostu = 34706, Wskaznik_GDP = TRUE)
+Azja      <- Model(t = 100, GDP = 3700, HDI = 0.714, Pop_start = 4694576167, Life_Time = 73, Tempo_Wzrostu = 18000, Wskaznik_GDP = TRUE)
+Ameryka.N <- Model(t = 100, GDP = 60859, HDI = 0.733, Pop_start = 595783465, Life_Time = 77, Tempo_Wzrostu = 60859, Wskaznik_GDP = TRUE)
+Ameryka.S <- Model(t = 100, GDP = 11351, HDI = 0.738, Pop_start = 434254119, Life_Time = 73, Tempo_Wzrostu = 18000, Wskaznik_GDP = TRUE)
+Oceania   <- Model(t = 100, GDP = 63809, HDI = 0.693, Pop_start = 44491724, Life_Time = 78, Tempo_Wzrostu = 63809, Wskaznik_GDP = TRUE)
+
+plot(Afryka)
+plot(Europa)
+plot(Azja)
+plot(Ameryka.N)
+plot(Ameryka.S)
+plot(Oceania)
+
+Earth_Pop <- data.frame(Afryka, Europa, Azja, Ameryka.N, Ameryka.S, Oceania)
+Earth_Pop$SUM <- rowSums(Earth_Pop)
+plot(Earth_Pop$SUM)
+Earth_Pop[100,] # Populacja za 100 lat
+Earth_Pop[100,]/1000000 # Populacja za 100 lat w mln ludzi
+
+# 3) 
+#### Populacja swiata, jesli GDP biednych kontynentow podwoilo sie, a reszta zostala na tym samym poziomie
+
+Afryka    <- Model(t = 100, GDP = 2370, HDI = 0.536, Pop_start = 1393676444, Life_Time = 63, Tempo_Wzrostu = 4740, Wskaznik_GDP = TRUE)
+Europa    <- Model(t = 100, GDP = 34706, HDI = 0.845, Pop_start = 745173774, Life_Time = 78, Tempo_Wzrostu = 34706, Wskaznik_GDP = TRUE)
+Azja      <- Model(t = 100, GDP = 3700, HDI = 0.714, Pop_start = 4694576167, Life_Time = 73, Tempo_Wzrostu = 7400, Wskaznik_GDP = TRUE)
+Ameryka.N <- Model(t = 100, GDP = 60859, HDI = 0.733, Pop_start = 595783465, Life_Time = 77, Tempo_Wzrostu = 60859, Wskaznik_GDP = TRUE)
+Ameryka.S <- Model(t = 100, GDP = 11351, HDI = 0.738, Pop_start = 434254119, Life_Time = 73, Tempo_Wzrostu = 22702, Wskaznik_GDP = TRUE)
+Oceania   <- Model(t = 100, GDP = 63809, HDI = 0.693, Pop_start = 44491724, Life_Time = 78, Tempo_Wzrostu = 63809, Wskaznik_GDP = TRUE)
+
+plot(Afryka)
+plot(Europa)
+plot(Azja)
+plot(Ameryka.N)
+plot(Ameryka.S)
+plot(Oceania)
+
+Earth_Pop <- data.frame(Afryka, Europa, Azja, Ameryka.N, Ameryka.S, Oceania)
+Earth_Pop$SUM <- rowSums(Earth_Pop)
+plot(Earth_Pop$SUM)
+Earth_Pop[100,] # Populacja za 100 lat
+Earth_Pop[100,]/1000000 # Populacja za 100 lat w mln ludzi
+
+# 4) 
+#### Populacja swiata, jesli GDP biednych kontynentow potroilo sie, a reszta zostala na tym samym poziomie
+
+Afryka    <- Model(t = 100, GDP = 2370, HDI = 0.536, Pop_start = 1393676444, Life_Time = 63, Tempo_Wzrostu = 7110, Wskaznik_GDP = TRUE)
+Europa    <- Model(t = 100, GDP = 34706, HDI = 0.845, Pop_start = 745173774, Life_Time = 78, Tempo_Wzrostu = 34706, Wskaznik_GDP = TRUE)
+Azja      <- Model(t = 100, GDP = 3700, HDI = 0.714, Pop_start = 4694576167, Life_Time = 73, Tempo_Wzrostu = 11100, Wskaznik_GDP = TRUE)
+Ameryka.N <- Model(t = 100, GDP = 60859, HDI = 0.733, Pop_start = 595783465, Life_Time = 77, Tempo_Wzrostu = 60859, Wskaznik_GDP = TRUE)
+Ameryka.S <- Model(t = 100, GDP = 11351, HDI = 0.738, Pop_start = 434254119, Life_Time = 73, Tempo_Wzrostu = 34053, Wskaznik_GDP = TRUE)
+Oceania   <- Model(t = 100, GDP = 63809, HDI = 0.693, Pop_start = 44491724, Life_Time = 78, Tempo_Wzrostu = 63809, Wskaznik_GDP = TRUE)
+
+plot(Afryka)
+plot(Europa)
+plot(Azja)
+plot(Ameryka.N)
+plot(Ameryka.S)
+plot(Oceania)
+
+Earth_Pop <- data.frame(Afryka, Europa, Azja, Ameryka.N, Ameryka.S, Oceania)
+Earth_Pop$SUM <- rowSums(Earth_Pop)
+plot(Earth_Pop$SUM)
+Earth_Pop[100,] # Populacja za 100 lat
+Earth_Pop[100,]/1000000 # Populacja za 100 lat w mln ludzi
+
+# 5) 
+#### Populacja swiata, jesli GDP biednych kontynentow wzrosloby 1.5 razy a reszta zostala na tym samym poziomie
+
+Afryka    <- Model(t = 100, GDP = 2370, HDI = 0.536, Pop_start = 1393676444, Life_Time = 63, Tempo_Wzrostu = 3555, Wskaznik_GDP = TRUE)
+Europa    <- Model(t = 100, GDP = 34706, HDI = 0.845, Pop_start = 745173774, Life_Time = 78, Tempo_Wzrostu = 34706, Wskaznik_GDP = TRUE)
+Azja      <- Model(t = 100, GDP = 3700, HDI = 0.714, Pop_start = 4694576167, Life_Time = 73, Tempo_Wzrostu = 5550, Wskaznik_GDP = TRUE)
+Ameryka.N <- Model(t = 100, GDP = 60859, HDI = 0.733, Pop_start = 595783465, Life_Time = 77, Tempo_Wzrostu = 60859, Wskaznik_GDP = TRUE)
+Ameryka.S <- Model(t = 100, GDP = 11351, HDI = 0.738, Pop_start = 434254119, Life_Time = 73, Tempo_Wzrostu = 17026.5, Wskaznik_GDP = TRUE)
+Oceania   <- Model(t = 100, GDP = 63809, HDI = 0.693, Pop_start = 44491724, Life_Time = 78, Tempo_Wzrostu = 63809, Wskaznik_GDP = TRUE)
+
+plot(Afryka)
+plot(Europa)
+plot(Azja)
+plot(Ameryka.N)
+plot(Ameryka.S)
+plot(Oceania)
+
+Earth_Pop <- data.frame(Afryka, Europa, Azja, Ameryka.N, Ameryka.S, Oceania)
+Earth_Pop$SUM <- rowSums(Earth_Pop)
+plot(Earth_Pop$SUM)
+Earth_Pop[100,] # Populacja za 100 lat
+Earth_Pop[100,]/1000000 # Populacja za 100 lat w mln ludzi
+
+#################################################### BONUS: Wojna na Ukrainie ###########################################
+
+
+Dlugosc_Wojny = 2; Straty = 340000/2; Pop_Na_Froncie = 1320000
+# Model uwzgledniajacy demografię Ukrainy i Rosji w kontekscie strat wojennych oraz mezczyzn spedzajacych lata na fronice, zdala od domu
+
+Model_Wojna <- function(t = 100, GDP = 3700, HDI = 0.5, Pop_start = 40000000, Life_Time = 78, 
+                        Tempo_Wzrostu = 11100, Wskaznik_GDP = TRUE, Dlugosc_Wojny, Straty, Pop_Na_Froncie, FR, Wyjazd) {
+  #Model(t = 100, GDP = 2370, HDI = 0.536, Pop_start = 1393676444, Life_Time = 63, Tempo_Wzrostu = 3, Wskaznik_GDP = TRUE)
+  
+  N <- numeric(t)
+  N[1] <- Pop_start # Startowa populacja panstwa/kontynentu
+  if(Dlugosc_Wojny>0){  N[1] <- Pop_start - Wyjazd}
+  # Wybor, czy HDI, czy GDP
+  
+  if(Wskaznik_GDP == TRUE){
+    Wskaznik_Rozwoju <- data.frame(GDP = GDP)
+    fit <- fit2
+  } else{Wskaznik_Rozwoju <- data.frame(HDI = HDI)
+  fit <- fit1
+  }
+  
+  Poczatkowy_Rozwoj <- Wskaznik_Rozwoju
+  # Jaki ma byc wzrost HDI/GDP po 100 latach?  Ilu krotny?
+  Jaki_Wzrost <- Tempo_Wzrostu/Poczatkowy_Rozwoj
+  Wzrost_Czynnika <- (Jaki_Wzrost-1)/100
+  
+  ####### Petla ######################
+
+  predict(fit, Wskaznik_Rozwoju)
+  for (i in 1:(t-1)){
+    Ratio <- (FR - 2.1)            # 2.1 prog FR ponizej ktorej nie dochodzi do wymiany pokolen i pop spada
+    if(i <= Dlugosc_Wojny){
+      Ratio <- (FR*0.70 - 2.1) 
+      Ratio <- Ratio  
+      Zmiana <- (Ratio/2 ) * N[i]  # pop na froncie zmniejsza rozrod
+      Zmiana <-(Zmiana / Life_Time) - Straty 
+      N[i+1] <-N[i] + Zmiana + (Pop_Na_Froncie/N[i]+1)*Zmiana*2
+    }else{
+      Ratio <- (FR - 2.1) 
+      Zmiana <- (Ratio/2) * N[i]
+    Zmiana <- Zmiana / Life_Time
+    N[i+1] <-N[i] + Zmiana}
+
+
+  }
+  return(N) # Funkcja Zwraca populacje
+}
+
+Rosja <- Model_Wojna(t = 50, GDP = 12194, HDI = 0.822, Pop_start = 143000000, Life_Time = 71, 
+            Tempo_Wzrostu = 11100, Wskaznik_GDP = TRUE, Dlugosc_Wojny = 5, Straty =340000/2, Pop_Na_Froncie = 2020000, FR = 1.50, Wyjazd = 1000000)
+plot(Rosja)
+tail(Rosja)
+Ukraina <- Model_Wojna(t = 50, GDP = 4835, HDI = 0.773, Pop_start = 43000000, Life_Time = 71, 
+                     Tempo_Wzrostu = 11100, Wskaznik_GDP = TRUE, Dlugosc_Wojny = 5, Straty =200000/2, Pop_Na_Froncie = 750000, FR = 1.22, Wyjazd = 6000000)
+plot(Ukraina)
+tail(Ukraina)
