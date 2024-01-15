@@ -1,0 +1,343 @@
+## Do zrobienia na dzis:
+
+# podstawowe statystki opisowe pr?by losowej (?rednia, mediana, kwartyle, wariancja, odchylenie standardowe).
+# testowanie hipotezy o r?wno?ci ?rednich w dw?ch populacjach generalnych za pomoc? testu t-studenta dla pr?b niezale?nych
+# testowanie hipotezy o r?wno?ci ?redniej przed i po zabiegu za pomoc? testu t-studenta dla par
+# testowanie hipotezy o zgodno?ci rozk?adu empirycznego z teoretycznym za pomoc? testu chi-kwadrat
+# Anova
+
+#### Na poczatek troche teorii ################################################################################################################################################
+
+
+# Rozklad normalny 
+
+x <- seq(-4, 4, length=100)
+y <- dnorm(x)
+plot(x,y, type = "l", lwd = 2, axes = FALSE, xlab = "", ylab = "")
+axis(1, at = -3:3, labels = c("-3s", "-2s", "-1s", "mean", "1s", "2s", "3s"))
+
+
+### podstawowe operacje ################################################################################################################################################
+
+
+dane_a <-  c(1,2,3,3,4,5,6,7,8,9,10,11,12,13)
+mean(dane_a)
+median(dane_a)
+
+### Wariancja [var]   # The Variance is determined as an average of the squared differences from the mean
+# https://www.matemaks.pl/wariancja.html
+# Odejmujemy wynik od ?redniej i podstawiamy do kwadratu. Potem bierzemy ?redn? dla takich wynik?w.
+
+
+### Wariancja z proby                                   https://www.naukowiec.org/wzory/statystyka/wariancja_6.html
+war <- c(3,5,7)
+war <- c(6,7,8)
+war <- c(6.5, 7, 7.5)
+mean(war)
+var(war) # Wariancja z proby
+plot(war)
+
+
+### Odchylenie standardowe [sd]
+
+war <- c(5,7,9)
+war <- c(6,7,8)
+war <- c(6.5, 7, 7.5)
+
+sd(war) # Odchylenie Standadrowe
+
+
+### Kwantyle
+
+head(dane_a, n = 7)
+tail(dane_a)
+str(dane_a) # jaki typ obiektu
+
+quantile(dane_a) # liczymy klasyczne kwantyle
+quantile(dane_a, probs = c(0.05, 0.65, 0.95)) # liczymy kwantyle jakie chcemy
+
+# Summary
+summary(dane_a) # kilka rzeczy w jednym, fajne podsumowanie
+
+
+
+####################################################################### Test chi kwadrat ####################################################################################
+# Sprawdza czy rozk?ad jest taki, jak nasz wybrany. Czyli np. jesli mamy 50% szansy na wyrzucenie orla lub reszki, to czy faktycznie wyrzucilismy po 50% orlow i reszek?
+
+# H0 - nie ma r??nic od naszego zalozonego "p" dla danego wydarzenia
+# H1 - sa roznice
+# Je?li nasza statystyka chi-kwadrat przekroczy warto?? z tabeli, to odrzucamy H0
+
+
+## KOSCI ##
+# Rzuty ko?cmi 6 ?ciennymi, czy ko?ci rzucaj? losow?
+x <- c(4, 6, 3, 8, 6, 7) # ilosc danego wydarzenia
+p <- c(1/6, 1/6, 1/6, 1/6, 1/6, 1/6) # prawdopodobienstwo zdarzenia
+sum(p)
+
+# Przeprowadzamy test, x to wektor danych a p = wektoriwu z prawdopodobienstwami.
+chisq.test(x,p = p) # Test Chi Kwadrat
+
+
+
+### Inny przypadek, gdzie p jest r??ne dla kazdego zdarzenia
+
+x <- c(13, 9, 7, 4, 13, 7) # ilosc danej wartosci
+p <- c(0.13, 0.13, 0.20, 0.16, 0.24, 0.14) # prawdopodobienstwo
+sum(p) # czy p ma ??cznie 1?
+
+# Przeprowadzamy test, x to wektor danych a p = wektor z prawdopodobienstwami.
+
+?chisq.test
+chisq.test(x,p = p)
+
+
+# Sprawdzmy czy rodzi sie tyle samo osobnik?w ?e?skich co m?skich
+
+x <- c(54, 48)
+x <- c(54, 38)
+x <- c(54, 28)
+p <- c(0.5, 0.5)
+p
+
+chisq.test(x,p = p)
+
+
+
+####################################################################### TEST T STUDENTA ##################################################################################
+# Test s?u?y do por?wnywania dw?ch ?rednich mi?dzy sob?. Wykorzystuje ?redn? oraz wariancje albo odchylenie standardowe. 
+# Czy ?rednie dw?ch grup s? istotnie statystycznie od siebie r??ne?
+# Test jest odporny na z?amanie swoich za?o?e?: homogeniczno?c wariancji oraz normalno?? rozk?adu zmiennej zale?nej, podobna ilosc wynikow
+
+
+############################################################# 1)  testu t dla pr?b niezale?nych #######################################################
+# H0 ?rednie s? takie same dla obu grup
+# H1 ?rednie s? r?zne
+
+# Tworz? dwie grupy danych        # opowiedzie? jak wrzuci? wlasne dane!
+
+x <- c(rnorm(5, mean=2, sd=2),  rnorm(5, mean=10, sd=2)) # R tworzy tutaj dla mnie losowe liczby z wybranego przezemnie rozkladu. W tym miejscu w zadaniu podajecie wlasne liczby
+y <- c(rep("a",5), rep("b",5))
+str(x)
+
+# Lub gdy chce podac wlasne liczby
+x <- c(c(2,2,3,4,5),  rnorm(8,8,10,11,13)) # tutaj mozecie wpisac wlasne liczby z zadania
+y <- c(rep("a",5), rep("b",5))
+
+
+### Zalozenia ###
+
+## Normalnosc Danych
+# sprawdzam czy jest zachowana normalno?c danych ( p-value powinno by? > ni? 0.05 by wszystko by?o dobrze)
+
+shapiro.test(x[1:5]) # dla pierwszej grupy
+shapiro.test(x[6:10]) # dla drugiej grupy
+
+## Homogenicznosc Wariancji
+# sprawdzam homogenicznosc wariancji 
+install.packages(car) # instaluje "paczke" z nowymi funkcjami do programu
+library(car) # wczytuje ta paczke do R, trzeba to robic po kazdym wlaczeniu programu
+
+Tabelka = data.frame(x,y) # to nowa funkcja ktora robi z danych tabelke. Niektore funkcje wymagaja by dane przez nie wykorzystywan podane byly wlasnie w takiej tabelce
+Tabelka
+
+leveneTest(x ~ y, data = Tabelka) # je?li Pr> od 0.05 to wszystko jest dobrze :)
+
+
+
+### Test t- studenta dla prob niezaleznych ############################
+# I w ko?cu mo?emy wykona? nasz test t studenta!!! :D
+
+
+t.test(x~y) # <- WYNIK, bardzo ma?o kodu a najwa?niejszy krok!
+
+
+################################################################## 2) test t dla par #####################################################################
+# H0 ?rednie s? takie same dla obu grup
+# H1 ?rednie s? r?zne
+
+# Tworze dane, znowu generuje je losow
+
+x <- c(rnorm(5, mean=2, sd=2),  rnorm(5, mean=10, sd=2))
+#x <- c(c(2,2,3,4,5),  rnorm(8,8,10,11,13)) # mozecie edytowac ta linijke jesli chcecie wpisac wlasne dane
+
+y <- c(rep("ilo?? jaj sk?adanych przez kur? przed lekiem",5), rep("ilo?? jaj sk?adanych przez kur? po leku",5))
+
+
+### Zalozenia ###
+
+## Normalnosc Danych
+# sprawdzam czy jest zachowana normalno?c danych ( p-value powinno by? > ni? 0.05 by wszystko by?o dobrze)
+
+shapiro.test(x[1:5]) # dla pierwszej grupy
+shapiro.test(x[6:10]) # dla drugiej grupy
+
+## Homogenicznosc Wariancji (ta sama wariancja)
+# sprawdzam homogenicznosc wariancji 
+install.packages(car)
+library(car)
+Tabelka = data.frame(x,y)
+Tabelka
+
+leveneTest(x ~ y, data = Tabelka) # je?li Pr> od 0.05 to wszystko jest dobrze :)
+
+
+### Test t- studenta dla par #######################
+# mamy rozne warianty tego, o co mozemy zapytac
+
+t.test(y~x, paired = TRUE, alternative = "two.sided") # czy jest r??nica w ?rednich?
+t.test(y~x, paired = TRUE, alternative = "greater") # jesli H1 to znaczy ?e "po" ma WI?KSZ? ?redni? ni? "przed"
+t.test(y~x, paired = TRUE, alternative = "less") # jesli H1 to znaczy ?e "po" ma MNIEJSZ? ?redni? ni? "przed"
+
+
+############################################################################## ANOVA ###################################################################################
+
+######################################################################### Jednoczynnikowa ##############################################################################
+# Zmienna zale?na: wynik eksperymentu
+# Zmienna niezale?na: ustala eksperymentator
+
+## Anova : Analiza wariancji. Musz? by? minimum 3 grupy. Nie dwie jak dla testu t- studenta. Sprawdzamy czy wariancja miedzygrupowa jest taka jak wariancja og?lnogrupowa.
+# Wariancja wewn?trz grup powinna by? ma?a, og?lno grupowa mo?e by? du?a.
+#Je?li statystyka F (od Fishera:) jest mniejsza od 1 oznacza to, ?e wariancja niewyja?niona (wewn?trzgrupowa) jest wi?ksza od wariancji wyja?nionej (mi?dzygrupowej).
+
+# Co wazne! Anova moze nam tylko powiedziec ze conajmniej jedna grupa odstaje. Nie mowi nam jednak ktora!. By sie dowiedziec musimy zrobic tzw. TEST POST-HOC
+
+
+### Za?o?enia ### UWAGA! normalnie najpierw sprawdzamy zalozenia, a potem jak wszystko sie zgadza to robimy Anove. W R latwiej jest najpier zrobic Anove a potem sprawdzic zalozenia.
+
+# Zalozenia (sprawdzimy je potem)
+## ka?da populacja ma mie? rozk?ad normalny
+## wariancje w populacjach s? r?wne
+
+# Tworzymy dane
+
+nawoz = c(rep("a",5), rep("b",5), rep("c",5)) # mamy 3 typy nawozu
+nawoz
+
+# Przyklady z spelnionymi zalozeniami
+zbiory = c(1,2,3,4,5,2,2,3,4,6,28,30,32,34,36) # masa w tonach rolsin potraktowanych nawozami. Jest 15 wynikow bo kazdy z 3 nawozow byl tesotwany 5 razy
+# zbiory = c(1,3,3,4,5,1,2,3,4,5,1,2,3,4,6) # Brak roznic
+
+# Przyklady z niespelnionymi zalozeniami
+# zbiory = c(1,2,3,4,5,2,2,3,4,6,14,21,25,34,36) # Zla wariancja
+# zbiory = c(1,3,3,4,5,1,2,3,4,5,1,1,2,6,7) # Brak roznic
+zbiory
+
+# Scalamy nasze dane w jedna tabelke
+rolnictwo <- data.frame(nawoz, zbiory)
+
+rolnictwo$nawoz # znak dolara pozwala nam patrzec na konretna kolumne
+str(rolnictwo)
+
+# Robimy anove
+Jednoczynnikowa_Anova <- aov(zbiory ~ nawoz, data = rolnictwo)    # Wykonujemy Anove. wyniki ~ czynnik grupuj?cy, data = nasze dane
+
+summary(Jednoczynnikowa_Anova)  #### co znaczy Pr(>F) 1.51e-06 *** # Tutaj sprawdzamy wynik Anovy
+# H0 =  nie ma r??nic mi?dzy grupami
+# H1 = grupy s? r??ne! gdy p < 0.05
+
+
+## Wracamy do zalozen
+
+# zobaczmy nornalnosc danych wizualnie
+Jednoczynnikowa_Anova$residuals
+hist(Jednoczynnikowa_Anova$residuals)
+plot(Jednoczynnikowa_Anova$residuals)
+
+## ale lepiej jest sprawdzic testem Shapiro-Wilka czy mamy normalnosc. # Uwaga sprawdzamy "Residua", czyli o ile dane wyniki sie roznia od ich srednich!
+# Generalnie mo?na sprawdza? normalnosc wewn?trz grup [1] albo resyduow dla calosci razem [2]. Drugie jest prostsze dla maych danych
+# test na normalnosc
+
+shapiro.test(Jednoczynnikowa_Anova$residuals) # je?li p-value > 0.05 to za?o?enie spe?nione
+
+# Sprawdzenie jednorodnosci/rownosci Wariancji
+
+# Robimy wizualizacje Boxplot
+boxplot(zbiory ~ nawoz, data = rolnictwo)
+
+library(car)
+RolnictwoTabelka <- data.frame(nawoz, zbiory)
+leveneTest(zbiory ~ nawoz, data = RolnictwoTabelka) # tutaj finalnie sprawdzamy wariancje, powinna byc taka sama czyli p > 0,05
+
+#### TEST POST HOC: Jakie grupy si? r??ni? mi?dzy sob??
+# Test Tuckey'a
+
+TukeyHSD(Jednoczynnikowa_Anova, conf.level=0.95)
+
+############################################################################## ANOVA ###################################################################################
+
+######################################################################### Wieloczynnikowa ##############################################################################
+
+# Tworze zmienne zale?ne [Y]. Jest to nowy spos?b,tworze wektro z danym dla ka?dej klasy, a nast?pnie je ??cz?
+oceny_klasy_a <- c(1,2,2,3,4,4,5) # Oceny dla klasy a
+oceny_klasy_b <- c(1,3,3,4,5,6,6) # Oceny dla klasy b
+oceny_klasy_c <- c(1,1,2,2,5,6,6) # Oceny dla klasy c
+
+oceny_klasy <- c(oceny_klasy_a, oceny_klasy_b, oceny_klasy_c)
+oceny_klasy
+
+# Tworz? zmienne niezale?ne [X]. Tym razem b?dzie wi?cej ni? 1 czynnik
+
+klasa <- c(rep("klasa I a",7), rep("klasa I b",7), rep("klasa I c",7)) 
+plec <- c(c(1,0,1,1,1,0,0), c(0,1,1,0,0,1,0), c(0,0,1,0,1,1,0)) # 0 to ch?opcy, 1 to dziewczynki, kazdy nawias to inna klasa
+
+Tabelka_Z_Ocenami <-data.frame(oceny_klasy, klasa, plec) # Tworze tabelke z danymi
+
+Dwuczynnikowa_Anova <-  aov(oceny_klasy ~ klasa + plec, data = Tabelka_Z_Ocenami) #robie anove
+summary(Dwuczynnikowa_Anova) # Wynik Anovy. czy klasa wp?ywa na oceny? Czy plec wplywa na oceny? Nie, bo Pr(>F) wieksze od alfa = 0,05
+
+
+#
+## Przyk?ad Drugi, jedna klasa jest lepsza od pozosta?ych
+
+oceny_klasy_a <- c(3,4,4,5,5,6,6)
+oceny_klasy_b <- c(1,3,3,4,4,4,5)
+oceny_klasy_c <- c(1,1,2,2,3,4,5)
+oceny_klasy <- c(oceny_klasy_a, oceny_klasy_b, oceny_klasy_c)
+oceny_klasy
+
+# Tworz? zmienne niezale?ne [X]. Tym razem b?dzie wi?cej ni? 1 czynnik
+
+klasa <- c(rep("klasa II a",7), rep("klasa II b",7), rep("klasa II c",7)) 
+plec <- c(c(1,0,1,1,1,0,0), c(0,1,1,0,0,1,0), c(0,0,1,0,1,1,0)) # 0 to ch?opcy, 1 to dziewczynki
+
+Tabelka_Z_Ocenami <-data.frame(oceny_klasy, klasa, plec)
+
+Dwuczynnikowa_Anova <-  aov(oceny_klasy ~ klasa + plec, data = Tabelka_Z_Ocenami)
+summary(Dwuczynnikowa_Anova) # summary() pokazuje nam wyniki
+
+#
+## Przyk?ad Trzeci, ch?opcy ucz? si? lepiej od dziewczynek
+
+oceny_klasy_a <- c(1,2,2,3,4,4,5)
+oceny_klasy_b <- c(1,3,3,4,5,6,6)
+oceny_klasy_c <- c(1,1,2,2,5,6,6)
+oceny_klasy <- c(oceny_klasy_a, oceny_klasy_b, oceny_klasy_c)
+oceny_klasy
+
+# Tworz? zmienne niezale?ne [X]. Tym razem b?dzie wi?cej ni? 1 czynnik
+
+klasa <- c(rep("klasa III a",7), rep("klasa III b",7), rep("klasa III c",7)) 
+plec <- c(c(1,1,1,1,0,0,0), c(1,1,1,1,0,0,0), c(1,1,1,0,0,0,0)) # 0 to ch?opcy, 1 to dziewczynki
+
+Tabelka_Z_Ocenami <-data.frame(oceny_klasy, klasa, plec)
+
+Dwuczynnikowa_Anova <-  aov(oceny_klasy ~ klasa + plec, data = Tabelka_Z_Ocenami)
+summary(Dwuczynnikowa_Anova) # summary() pokazuje nam wyniki
+
+### 
+
+TukeyHSD(Dwuczynnikowa_Anova)
+
+### Zalozenia jak w Jednoczynnikowej Anovie
+
+# Normalnosc
+
+shapiro.test(Dwuczynnikowa_Anova$residuals) # je?li p-value > 0.05 to za?o?enie spe?nione
+
+# Sprawdzenie jednorodnosci/rownosci Wariancji
+
+library(car)
+RolnictwoTabelka <- data.frame(nawoz, zbiory)
+leveneTest(oceny_klasy ~ klasa, data = Tabelka_Z_Ocenami) # tutaj finalnie sprawdzamy wariancje, powinna byc taka sama czyli p > 0,05
+leveneTest(oceny_klasy ~ plec, data = Tabelka_Z_Ocenami) # tutaj finalnie sprawdzamy wariancje, powinna byc taka sama czyli p > 0,05
