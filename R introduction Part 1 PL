@@ -1,0 +1,188 @@
+### Kontakt: Mateusz Draga, matdra@amu.edu.pl
+
+### Instalacja R
+
+## Najpier instalujemy z tej strony R
+
+# R https://cran.r-project.org/bin/windows/base/
+
+## Nastepnie instalujemy R-Studio, ktory bardzo ulatwia prace z R
+
+# R studio https://www.rstudio.com/products/rstudio/download/
+
+
+
+
+### Wprowadzenie do kodowania w R ###################################################################################################################################################
+
+### R moze dzialac jak kalkulator:
+#Podstawowe dzialania
+
+2 + 2
+2 - 2
+2 * 3
+2 / 2
+2 ** 3    # potega
+2 ^ 3     # tez potega
+3 == 3    # czy dwie liczby sa rowne?
+3 != 3    # czy dwie liczby nie sa rowne?
+
+#
+sqrt(16)    # pierwsza nasza funkcja - pierwiastek kwadratowy
+16 ^ (1 / 2)# inny sposob na pierwiastkowanie przez potegowanie
+8 ^ (1 / 3)
+
+3 / 2
+11 %% 3     # reszta z dzielenia
+11 %/% 3    # dzielenie calkowite
+
+1.6         #przecinek w liczbie zaznaczamy ".", nie przecinkiem!
+round(1.6)  # Funkcja zaokraglajaca
+
+2 + 3 * 4 # R zna kolejnosc wykonywania dzialan
+
+
+
+### Wazne skroty  ###################################################################################################################################################
+
+# ctrl + enter # wykonuje dana linie kodu
+# .... + tab, by program dopisal kod lub pokazal opcje z listy
+# ctrl + z # Cofamy co zrobilismy
+# ctrl + s # Zapisujemy co zrobilismy
+
+
+### W R mamy zmienne i funkcje. 
+### Zmienne to jakby slowa lub litery do kotrych przypisujemy jakies dane np. x = 2 albo Liczba <- c(1,2,3)
+### Funkcje rozpoznajemy po tym, ze koncza sie nawiasem np. mean(). Gdy do nawiasu wstawimy jakies dane, to one wykonuja wtedy jakies dzialania np. mean(c(1,3,7))
+### Przyklady dla obu znajdziecie ponizej
+
+### Zmienne ###################################################################################################################################################
+
+x 
+x = 3
+x
+X # duze i male litery to rozne rzeczy!
+
+# Znaki "=" i "<-" sa tym samym
+x <- 3 # skrot to: "alt + -"
+x
+
+y <- 4
+y
+
+x + y 
+
+Zmienna = 10
+Zmienna
+zmienna
+
+### Typy zmiennych
+# Zle typy zmiennych moga czesto okazac sie bardzo problematyczne!
+
+x = 4
+typeof(x)
+x + 2
+
+x = "slowo" # slowa powinnismy zapisac w cudzyslowie ""
+typeof(x)
+
+x = "4"
+x
+typeof(x)
+x + 2 # Mamy problem, 2 nie dodaje sie do naszego X, bo program uznaje "4" za tekst!
+
+# Naprawiamy nasze x
+as.double(x)
+as.double(x) + 2 # ! pokazac zaznaczenie kodu.
+x + 2
+
+x = as.double(x)
+
+## True i False [ 1 i 0 ]
+TRUE
+z = FALSE
+w = TRUE
+w * 2
+z * 2
+w * FALSE
+# Czasami funkcje zwracaja nam "TRUE i FALSE"
+is.numeric(x)
+is.numeric(z)
+
+
+
+### Wektory (Vectors)  ###################################################################################################################################################
+
+x <- c(11, 12, 13, 14, 15, 16, 18, 20, 21)
+x
+y <- c("Lipa", "Dab", "Kasztan") # Dobrze jest by unikac polskich znakow
+
+x + 2
+x * 2
+
+length(x) # ile elementow w obiekcie?
+head(x) # Pierwsze elementy
+tail(x) # Ostatnie elementy
+
+head(x, 1) # Ukryte wlasciwosci funckji - do niektorych funkcji mozemy dodac dodatkowe zmienne i wtedy zachowuja sie inaczej (patrz linia 118)
+head(x, 6)
+tail(x, 1)
+help(head) ## !!!! bardzo wazna i pomocna funcja, pozwala nam dowiedziec sie wiecej o danej funkcji - otiwera okno z opisem dzialania funkcji
+?(head)
+
+# proste statystyki 
+mean(x)
+median(x)
+max(x)
+min(x)
+
+# Wybieranie elementow wektora  [] 
+
+x[1] # nawias kwadratowy slozy do wybierania danego elementu wektora
+x[1:2]
+x[c(1,3,5)]
+
+z = c(1,2)
+x[z]
+
+x[-2] # bierzemy wektor bez drugiego elementu
+x[ x > 15]
+z = c(-1,-2) # usuwamy pierwszy i drugi element
+x[z]
+
+y = c(14, 15, 16, 18, 20, 21)
+
+x[x %in% c()]
+x[!x %in% c(20,21)]
+
+y = c(18, 20, 21) 
+x[!x %in% y]
+
+### Listy  ###################################################################################################################################################
+
+Rok <-  list(c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15), c("sty", "lut", "marz", "kwie"))
+Rok[1]
+Rok[[2]][2]
+
+vec <- c(1,2,3)
+char_vec <- c("Hadoop", "Spark", "Flink", "Mahout")
+logic_vec <- c(TRUE, FALSE, TRUE, FALSE)
+out_list <- list(vec, char_vec, logic_vec)
+out_list
+
+### Ramki Danych
+
+Dane_o_Uczniach <- data.frame(                                            ##! Powiedziec o liniach!
+  id_ucznia = c (1:5), 
+  imie_ucznia = c("Jan","Daniel","Zosia","Weronika","Szymon"),
+  wzrost_ucznia = c(185,165,145,172,171))
+
+Dane_o_Uczniach
+
+Dane_o_Uczniach$imie_ucznia
+Dane_o_Uczniach[1]
+Dane_o_Uczniach[1,2] # pierwszy jest wiersz, druga jest kolumna
+Dane_o_Uczniach[1:3,2]
+Dane_o_Uczniach[,3]
+
+######################################################### A TERAZ STATYSTYKA :) ###############################################################################################
