@@ -1,0 +1,72 @@
+#### Table Operations ####
+
+## Add and drop columns by name	##
+
+ALTER TABLE invasive_macrophytes_db.record
+ADD Finder varchar(50),
+ADD Abundance_at_Location varchar(255),
+ADD Abundance_in_Plot varchar(255),
+ADD Visibility float;
+
+## Drop columns by name  ##
+
+DROP COLUMN Protection_Details;
+
+
+## Return column names for the table ##
+
+SHOW COLUMNS FROM invasive_macrophytes_db.location;
+
+
+## Show info about a tables and the keys ##
+
+describe invasive_macrophytes_db.species; 
+
+show tables;
+
+select * from INFORMATION_SCHEMA.TABLE_CONSTRAINTS;
+ 
+## Alter keys ## - "constraint" so you can't enter just any value
+
+set foreign_key_checks=0 # for errors
+
+ALTER TABLE invasive_macrophytes_db.species ADD CONSTRAINT FOREIGN KEY(Record_Key) REFERENCES invasive_macrophytes_db.record(Record_Key);
+
+
+
+
+
+### Left Join ###
+
+SELECT t1.*, t2.Liczba_dni_z_pokrywa_sniezna
+FROM publikacja_stanowiska.dane_gat_obce_2023 t1
+LEFT JOIN publikacja_stanowiska.meteo_1995_2022 t2 ON t1.Kod_stacji_Tylko_od_1996_2022 = t2.Kod_stacji;
+
+# Create new table from the result of Left Join
+
+create table test_csv.test1 as 
+SELECT t1.*, t2.Jezioro
+FROM test_csv.monitoring_elodea t1
+LEFT JOIN test_csv.nazwy_jezior t2 ON t1.Stanowisko = t2.Stanowisko;
+
+### Delete row by a PrimaryKey Number ###
+
+DELETE FROM invasive_macrophytes_db.species WHERE Record_Key IN (400, 401)
+
+### Show path to the safe import folder ###
+
+SHOW VARIABLES LIKE "secure_file_priv"; 
+
+
+### Importing row from CSV file
+
+
+LOAD DATA INFILE '.../.../MySQL Server 8.0/Uploads/location1.csv'
+INTO TABLE invasive_macrophytes_db.location
+FIELDS TERMINATED BY ';' #  how new columns are marked
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n' # how new lines are marked
+IGNORE 1 ROWS;    # ignore 1 row with col names
+
+
+###
